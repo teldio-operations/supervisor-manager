@@ -4,5 +4,5 @@ import "github.com/teldio-operations/supervisor-go/module"
 
 type Module interface {
 	Info() *module.Info
-	Execute() error
+	Run() error
 }

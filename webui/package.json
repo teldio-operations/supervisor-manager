@@ -1,0 +1,45 @@
+{
+  "name": "bun-react-template",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.tsx",
+  "module": "src/index.tsx",
+  "scripts": {
+    "dev": "bun --hot src/index.tsx",
+    "build": "bun build ./src/index.html --outdir=dist --sourcemap --target=browser --minify --define:process.env.NODE_ENV='\"production\"' --env='BUN_PUBLIC_*'",
+    "start": "NODE_ENV=production bun src/index.tsx"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@fontsource/roboto": "^5.2.5",
+    "@mui/icons-material": "^7.0.2",
+    "@mui/material": "^7.0.0",
+    "@mui/x-data-grid": "^7.28.1",
+    "@tanstack/react-query": "^5.75.0",
+    "@types/dockerode": "^3.3.38",
+    "@types/react-linkify": "^1.0.4",
+    "@uiw/react-json-view": "^2.0.0-alpha.30",
+    "dockerode": "^4.0.6",
+    "eslint": "^9.24.0",
+    "eventsource": "^3.0.6",
+    "linkify-plugin-ip": "^4.2.0",
+    "linkify-react": "^4.2.0",
+    "notistack": "^3.0.2",
+    "react": "^19",
+    "react-dom": "^19",
+    "react-inspector": "^6.0.2",
+    "react-linkify": "^1.0.0-alpha"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.24.0",
+    "@types/bun": "latest",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "globals": "^16.0.0",
+    "typescript-eslint": "^8.29.1"
+  }
+}

@@ -66,7 +66,7 @@ func (w *ExecutableModuleInstance) Info() *module.Info {
 	return w.info
 }
 
-func (w *ExecutableModuleInstance) Execute() error {
+func (w *ExecutableModuleInstance) Run() error {
 	command := exec.Cmd{
 		Path: w.executablePath,
 		Dir:  w.directoryPath,
@@ -82,10 +82,14 @@ func (repo *ModulesRepository) NewExecutableModuleFromConfig(configPath, directo
 		return nil, err
 	}
 
+	return repo.NewExecutableModule(string(configBytes), directoryPath)
+}
+
+func (repo *ModulesRepository) NewExecutableModule(configStr string, directoryPath string) (*ExecutableModuleInstance, error) {
 	var config struct {
 		Name string `json:"module"`
 	}
-	err = json.Unmarshal(configBytes, &config)
+	err := json.Unmarshal([]byte(configStr), &config)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +98,7 @@ func (repo *ModulesRepository) NewExecutableModuleFromConfig(configPath, directo
 		if module.info.Name == config.Name {
 			return &ExecutableModuleInstance{
 				ExecutableModule: module,
-				config:           string(configBytes),
+				config:           configStr,
 				directoryPath:    directoryPath,
 			}, nil
 		}

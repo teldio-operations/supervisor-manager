@@ -7,9 +7,9 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/teldio-operations/supervisor-go/module"
+	"github.com/teldio-operations/supervisor-manager/utils"
 )
 
 type WebappModule struct {
@@ -31,26 +31,13 @@ func (w *WebappModule) Info() *module.Info {
 	}
 }
 
-func (mod *WebappModule) spa(fileServer http.Handler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		_, err := fs.Stat(mod.fs, strings.TrimLeft(r.URL.Path, "/"))
-		if err != nil {
-			http.ServeFileFS(w, r, mod.fs, "index.html")
-			return
-		}
-
-		fileServer.ServeHTTP(w, r)
-	}
-}
-
-func (w *WebappModule) Execute() error {
+func (w *WebappModule) Run() error {
 	if w.config.Port == 0 {
 		return errors.New("webapp did not have a port defined")
 	}
-	fileServer := http.FileServerFS(w.fs)
 	server := http.Server{
 		Addr:    fmt.Sprintf("localhost:%d", w.config.Port),
-		Handler: http.HandlerFunc(w.spa(fileServer)),
+		Handler: http.HandlerFunc(utils.Spa(w.fs)),
 	}
 	slog.Info(fmt.Sprintf("serving %s at http://%s", w.config.Title, server.Addr))
 	return server.ListenAndServe()
