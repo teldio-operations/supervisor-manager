@@ -5,16 +5,17 @@ import (
 	"flag"
 	"fmt"
 	"io/fs"
+	"log"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"sync"
 
-	"github.com/teldio-operations/supervisor-manager/module"
+	"github.com/teldio-operations/supervisor-manager/manager"
 )
 
 var configsEnvVarName = "SUPERVISOR_CONFIGS_PATH"
-var repositoryEnvVarName = "SUPERVISOR_REPOSITORY_PATH"
+var repositoryEnvVarName = "SUPERVISOR_MODULES_PATH"
 
 var configsPath = flag.String(
 	"configs-path",
@@ -43,6 +44,7 @@ func isExecutable(mode fs.FileMode) bool {
 }
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	flag.Parse()
 
 	ensureFlag(configsPath)
@@ -54,7 +56,15 @@ func main() {
 		return
 	}
 
-	var modules []module.Module
+	var modules []manager.Module
+
+	modulesRepo, err := manager.GetRegisteredModules(*repositoryPath)
+	if err != nil {
+		slog.Error(fmt.Sprintf("failed to retrieve module repository: %s", err))
+		return
+	}
+
+	slog.Debug("all modules registered")
 
 	for _, configFile := range configs {
 		path := filepath.Join(*configsPath, configFile.Name())
@@ -63,39 +73,46 @@ func main() {
 			continue
 		}
 
-		if !fileInfo.IsDir() {
-			continue
-		}
-
-		configBytes, err := os.ReadFile(filepath.Join(path, "config.json"))
-		if err != nil {
-			continue
-		}
-		var config map[string]any
-		err = json.Unmarshal(configBytes, &config)
-		if err != nil {
-			continue
-		}
-
-		if config["name"] == "webapp" || config["name"] == "web" {
-			var webappConfig *module.WebappConfig
-			err = json.Unmarshal(configBytes, &webappConfig)
+		if filepath.Ext(configFile.Name()) == ".json" {
+			module, err := modulesRepo.NewExecutableModuleFromConfig(path, "")
 			if err != nil {
-				continue
-			}
-			module, err := module.NewWebappModule(path, webappConfig)
-			if err != nil {
-				slog.Error(fmt.Sprintf("failed to register webapp module: %s", err))
+				slog.Error(fmt.Sprintf("attempted to load config %s but failed: %s", configFile.Name(), err))
 				continue
 			}
 			modules = append(modules, module)
-		} else {
-			module, err := module.NewExecutableModuleFromDirectory(path)
+		}
+
+		if fileInfo.IsDir() {
+			configBytes, err := os.ReadFile(filepath.Join(path, "config.json"))
 			if err != nil {
-				slog.Error(fmt.Sprintf("failed to register executable module: %s", err))
 				continue
 			}
-			modules = append(modules, module)
+			var config map[string]any
+			err = json.Unmarshal(configBytes, &config)
+			if err != nil {
+				continue
+			}
+
+			if config["name"] == "webapp" || config["name"] == "web" {
+				var webappConfig *manager.WebappConfig
+				err = json.Unmarshal(configBytes, &webappConfig)
+				if err != nil {
+					continue
+				}
+				module, err := manager.NewWebappModule(path, webappConfig)
+				if err != nil {
+					slog.Error(fmt.Sprintf("failed to register webapp module: %s", err))
+					continue
+				}
+				modules = append(modules, module)
+			} else {
+				module, err := modulesRepo.NewExecutableModuleFromConfig(filepath.Join(path, "config.json"), path)
+				if err != nil {
+					slog.Error(fmt.Sprintf("failed to register executable module: %s", err))
+					continue
+				}
+				modules = append(modules, module)
+			}
 		}
 	}
 

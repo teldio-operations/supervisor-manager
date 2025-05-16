@@ -1,4 +1,4 @@
-package module
+package manager
 
 import (
 	"errors"
@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/teldio-operations/supervisor-go/module"
 )
 
 type WebappModule struct {
@@ -20,10 +22,12 @@ type WebappConfig struct {
 	Port  int
 }
 
-func (w *WebappModule) Info() *Info {
-	return &Info{
-		Name:  "webapp",
-		Title: w.config.Title,
+func (w *WebappModule) Info() *module.Info {
+	return &module.Info{
+		BaseInfo: module.BaseInfo{
+			Name:  "webapp",
+			Title: w.config.Title,
+		},
 	}
 }
 
