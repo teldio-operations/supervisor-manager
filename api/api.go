@@ -24,7 +24,7 @@ func StartServer(dist fs.FS) {
 	type O struct {
 		Body B
 	}
-	huma.Get(api, "/jesus", func(ctx context.Context, i *B) (*O, error) {
+	huma.Get(api, "/hello", func(ctx context.Context, i *B) (*O, error) {
 		return &O{Body: B{"world"}}, nil
 	})
 

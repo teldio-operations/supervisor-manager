@@ -7,8 +7,6 @@ import (
 )
 
 func DetectAndRunModules() {
-	slog.Debug("all modules registered")
-
 	manager, err := manager.NewManager(*repositoryPath, *configsPath)
 	if err != nil {
 		slog.Error(err.Error())
